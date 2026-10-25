@@ -1,0 +1,9 @@
+MASTERFORGE AI v0.7.0 — Universal Mobile/Web Home Screen App
+
+Upload THIS folder, with index.html at its root, to an HTTPS static host such as https://app.netlify.com/drop . The site shows a functioning browser-local mastering app. Open the resulting HTTPS URL on your device, then add it to the Home Screen / install it as a web app when your browser offers that option. Launch it online once before trying offline use.
+
+Audio processing stays on your device. No audio is uploaded to Netlify. There is no fixed time or file-size limit in mobile/web mode; actual success depends on device memory and available storage, especially for long exports. The web app does not contain native FFmpeg two-pass mastering. Choose WAV, MP3 or M4A under Export Settings, then download/share the result. Browser MP3 needs a one-time online encoder download; M4A works only on browsers with native AAC/MP4 recording (and encodes in real time). Keep WAV for archiving. Check Downloads / Files or use Share / Save to Files. Browser sessions do not persist imported audio. No GitHub required.
+
+NEW v0.6: -10 and -9 louder mastering intentions plus a Level-match A/B playback switch. Browser targets are approximate RMS intentions, not calibrated LUFS.
+
+NEW v0.7: At the bottom of the page, open Theme Studio to pick any of six color themes and four interface aesthetics. Choices update immediately and save locally when browser storage is available. Select Restore original look to reset. No account needed.

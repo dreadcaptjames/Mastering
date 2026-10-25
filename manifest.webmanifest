@@ -1,0 +1,30 @@
+{
+  "id": "./",
+  "name": "MasterForge AI \u2014 Offline Mastering",
+  "short_name": "MasterForge",
+  "description": "Private music mastering on your device. Local DSP with waveform, A/B comparison, and WAV, MP3, and M4A export.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1015",
+  "theme_color": "#0b1015",
+  "categories": [
+    "music",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

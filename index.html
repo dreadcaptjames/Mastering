@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1015" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MasterForge" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png" />
+  <meta name="description" content="MasterForge AI — a privacy-first audio mastering studio with real in-browser processing and optional studio rendering." />
+  <title>MasterForge AI — Intelligent Mastering Studio</title>
+  <script src="./theme.js"></script>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a href="./" class="brand" aria-label="MasterForge AI home">
+        <span class="brand-emblem" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><path d="M3 17V13M8 23V7M13 20V10M18 26V4M23 20V10M28 17V13" stroke="currentColor" stroke-width="2.7" stroke-linecap="round"/></svg></span>
+        <span class="brand-name">MASTER<span>FORGE</span><small>AI MASTERING STUDIO</small></span>
+      </a>
+      <div class="topbar-right">
+        <span class="status-chip"><i></i><span id="engineStatus">LOCAL ENGINE</span></span>
+        <button class="icon-button" id="settingsBtn" type="button" aria-label="Open settings" title="Engine settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 17h16M9 4v6M15 14v6" stroke-linecap="round"/></svg></button>
+        <button class="top-export" id="topExportBtn" type="button" disabled>Export master <span aria-hidden="true">↗</span></button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="ipad-install-tip" id="ipadInstallTip" hidden aria-label="Install MasterForge on your device">
+        <div><strong>Install MasterForge on your device</strong><p>Add it to your Home Screen or install it as a web app in your browser. After the first online visit, the interface can reopen offline.</p></div>
+        <button type="button" id="dismissInstall" aria-label="Dismiss installation tip">×</button>
+      </aside>
+      <div class="mobile-badge" id="mobileBadge" hidden>◈ Mobile Studio · private on-device DSP</div>
+      <section class="intro"><div><p class="eyebrow">THE NEXT GENERATION OF SOUND</p><h1>Make your music <em>hit different.</em></h1><p class="subtitle">Intelligent mastering built for the way music is made today. Upload your track, refine the sound, own the result.</p></div><div class="privacy-pill"><span>◈</span> Your audio stays on your device in Local mode</div></section>
+      <div class="workspace-grid">
+        <aside class="left-column">
+          <section class="panel upload-panel">
+            <div class="section-top"><h2><span class="panel-num">01</span> SOURCE AUDIO</h2><span class="muted-label">INPUT</span></div>
+            <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload audio file"><div class="drop-glyph"><svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><strong>Drop your track here</strong><p>or <span class="highlight">browse files</span> to get started</p><small>WAV, MP3, FLAC, M4A · duration varies by device</small></div>
+            <input type="file" id="fileInput" accept=".wav,.mp3,.flac,.m4a,.aac,.ogg,.aiff,audio/*" hidden />
+            <div class="track-info" id="trackInfo" hidden><div class="track-icon">♫</div><div class="track-text"><strong id="trackName"></strong><span id="trackSub"></span></div><button type="button" id="removeFile" aria-label="Remove track">×</button></div>
+            <button type="button" class="demo-link" id="demoBtn">↳ Try the studio with a generated demo track</button>
+          </section>
+
+          <section class="panel presets-panel">
+            <div class="section-top"><h2><span class="panel-num">02</span> MASTERING STYLE</h2><span class="muted-label">SELECT ONE</span></div>
+            <div class="preset-list" role="radiogroup" aria-label="Mastering preset">
+              <button type="button" class="preset" data-preset="natural" role="radio" aria-checked="false"><span class="preset-symbol">⌁</span><span class="preset-copy"><b>Natural</b><small>Open, dynamic & authentic</small></span><span class="preset-check"></span></button>
+              <button type="button" class="preset active" data-preset="balanced" role="radio" aria-checked="true"><span class="preset-symbol">≋</span><span class="preset-copy"><b>Balanced</b><small>Clarity, polish & definition</small></span><span class="preset-tag">POPULAR</span><span class="preset-check"></span></button>
+              <button type="button" class="preset" data-preset="impact" role="radio" aria-checked="false"><span class="preset-symbol">ϟ</span><span class="preset-copy"><b>Impact</b><small>Bold, powerful & forward</small></span><span class="preset-check"></span></button>
+            </div>
+          </section>
+
+          <section class="panel controls-panel"><div class="section-top"><h2><span class="panel-num">03</span> FINE TUNE</h2><button type="button" class="reset-link" id="resetSliders">RESET</button></div>
+            <div class="slider-group"><div class="slider-label"><label for="warmth">Warmth</label><output id="warmthVal">0</output></div><input type="range" id="warmth" min="-3" max="3" step="0.5" value="0" /><div class="slider-extremes"><span>LEAN</span><span>RICH</span></div></div>
+            <div class="slider-group"><div class="slider-label"><label for="clarity">Clarity</label><output id="clarityVal">0</output></div><input type="range" id="clarity" min="-3" max="3" step="0.5" value="0" /><div class="slider-extremes"><span>SMOOTH</span><span>CRISP</span></div></div>
+            <div class="slider-group"><div class="slider-label"><label for="intensity">Intensity</label><output id="intensityVal">0</output></div><input type="range" id="intensity" min="-2" max="2" step="0.5" value="0" /><div class="slider-extremes"><span>GENTLE</span><span>DRIVEN</span></div></div>
+            <div class="control-row"><label for="target">Output loudness <span class="hint" title="An approximate browser target; the studio server uses measured integrated LUFS.">ⓘ</span></label><select id="target"><option value="-16">Open / -16</option><option value="-14">Streaming / -14</option><option value="-12" selected>Energetic / -12</option><option value="-10">Loud / -10</option><option value="-9">Max impact / -9</option></select></div><p class="loudness-guidance" id="loudnessGuidance">Higher output can reduce punch. The browser target is approximate; Studio measures LUFS.</p>
+          </section>
+        </aside>
+
+        <section class="center-column">
+          <section class="panel main-stage"><div class="stage-header"><div><p class="eyebrow">MASTERING WORKSPACE</p><h2 id="stageTitle">Your next great sound starts here.</h2></div><span class="version-tag" id="versionTag">READY FOR AUDIO</span></div>
+            <div class="waveform-frame"><div class="waveform-header"><span><i></i> AUDIO WAVEFORM</span><span id="waveformDuration">00:00</span></div><canvas id="waveCanvas" height="250" aria-label="Audio waveform visualization"></canvas><div class="waveform-empty" id="waveformEmpty"><span>♫</span><p>Audio waveform will appear here</p></div><div class="wave-timeline"><span>0:00</span><span id="waveMid">0:00</span><span id="waveEnd">0:00</span></div></div>
+            <div class="transport"><button class="play-button" type="button" id="playBtn" disabled aria-label="Play audio"><svg id="playIcon" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><div class="transport-time"><span id="currentTime">0:00</span><span class="dim">/</span><span id="totalTime">0:00</span></div><input type="range" id="seekbar" min="0" max="1000" value="0" disabled aria-label="Seek through track"/><span class="speaker-icon">◖))</span><input id="volume" type="range" min="0" max="100" value="80" aria-label="Playback volume" /></div>
+            <div class="ab-bar"><span class="ab-label">COMPARE</span><div class="ab-toggle" role="group" aria-label="Playback version"><button id="originalBtn" class="ab-active" type="button">ORIGINAL</button><button id="masterBtn" type="button" disabled>MASTERED</button></div><label class="comparison-switch" for="levelMatch"><input type="checkbox" id="levelMatch" checked /><span>Level-match A/B</span></label><span class="compare-hint" id="compareHint">Level-matched A/B after mastering</span></div>
+          </section>
+
+          <section class="metrics-strip" aria-label="Mastering measurements"><div class="metric"><span>EST. RMS LEVEL <span title="Browser-local: approximate RMS, not integrated LUFS. Studio-server output uses measured LUFS.">ⓘ</span></span><strong id="rmsMetric">—</strong><small>dBFS</small></div><div class="metric"><span>SAMPLE PEAK</span><strong id="peakMetric">—</strong><small>dBFS</small></div><div class="metric"><span>CREST FACTOR</span><strong id="crestMetric">—</strong><small>dB</small></div><div class="metric"><span>STEREO CORRELATION</span><strong id="stereoMetric">—</strong><small>-1 to +1</small></div></section>
+
+          <section class="panel diagnosis-panel"><div class="section-top"><h2><span class="panel-num">◈</span> SMART ANALYSIS</h2><span class="muted-label" id="analysisStatus">AWAITING TRACK</span></div><div id="findings" class="findings"><div class="finding empty-finding"><span class="finding-dot neutral"></span><div><strong>Your mix, understood.</strong><p>Load a song to see its dynamics, level, stereo behavior, and processing advice.</p></div></div></div></section>
+          <section class="panel changes-panel"><div class="section-top"><h2><span class="panel-num">↗</span> MASTERING CHAIN</h2><span class="muted-label">NON-DESTRUCTIVE</span></div><div class="chain"><div><span class="chain-node">01</span><b>Preflight</b><small>Inspect source</small></div><span class="chain-arrow">→</span><div><span class="chain-node">02</span><b>Tonal shape</b><small>Gentle EQ</small></div><span class="chain-arrow">→</span><div><span class="chain-node">03</span><b>Dynamics</b><small>Adaptive</small></div><span class="chain-arrow">→</span><div><span class="chain-node">04</span><b>Ceiling</b><small>Peak control</small></div></div></section>
+        </section>
+        <aside class="right-column"><section class="assistant-panel"><div class="assistant-heading"><span class="sparkle">✦</span><div><small>INTELLIGENT GUIDANCE</small><h2>Master Assistant</h2></div></div><div class="assistant-message" id="assistantMessage">Hey there. I'm ready to help shape your next release.<br><br>Drop in your mix and I'll highlight technical issues, suggest a mastering style, and explain the processing choices.</div><div class="assistant-disclaimer"><span>◎</span> Your original is never overwritten.</div></section><section class="panel output-panel"><div class="section-top"><h2>EXPORT SETTINGS</h2><span class="muted-label">LOCAL OUTPUT</span></div><div class="output-meta"><div><span>FORMAT</span><b id="formatLabel">WAV · PCM 24-bit</b></div><div><span>SAMPLE RATE</span><b id="rateLabel">Source rate</b></div><div><span>ENGINE</span><b id="engineLabel">Browser Local</b></div></div><div class="export-format-controls"><label for="exportFormat">EXPORT FORMAT</label><select id="exportFormat" aria-label="Export format"><option value="wav">WAV — Lossless 24-bit</option><option value="mp3">MP3 — Compressed</option><option value="m4a">M4A — AAC</option></select><div id="exportBitrateRow" hidden><label for="exportBitrate">BITRATE</label><select id="exportBitrate"><option value="320">320 kbps</option><option value="256" selected>256 kbps</option><option value="192">192 kbps</option><option value="128">128 kbps</option></select></div><p id="exportHint">Uncompressed audio · best for archival.</p></div><button type="button" id="masterAction" class="primary-action" disabled><span>✦</span> CREATE MASTER <span>→</span></button><p class="render-note" id="renderNote">Choose an audio file to begin.</p><button type="button" id="downloadBtn" class="outline-action" disabled>↓ Download WAV master</button><button type="button" id="shareBtn" class="outline-action share-action" disabled hidden>↗ Share WAV / Save to Files</button><p id="mobileLimitation" class="ipad-limitation" hidden>Mobile/web mastering uses local browser DSP, not the Windows/CachyOS FFmpeg engine. Audio is not uploaded. Sessions are not saved after the app closes.</p><button type="button" id="reportBtn" class="text-action" disabled>↓ Export processing report</button></section><section class="trust-panel"><span>⌁</span><p><b>Crafted for creators.</b><br>MasterForge is currently an experimental DSP mastering tool. Quality depends on source material and is not yet independently benchmarked against Mixea.</p></section></aside>
+      </div>
+      <section class="theme-studio" id="themeStudio" aria-labelledby="themeStudioTitle">
+        <div class="theme-head"><div><p class="eyebrow">MAKE THE STUDIO YOUR OWN</p><h2 id="themeStudioTitle">Theme Studio <span class="theme-star" aria-hidden="true">✦</span></h2><p>Choose your colors, then choose the studio's personality. Your music and mastering settings stay untouched.</p></div><div class="theme-current" aria-live="polite"><span class="theme-current-dot" aria-hidden="true"></span><span id="themeCurrentLabel">Obsidian Mint · Digital Studio</span></div></div>
+        <div class="theme-group-heading"><h3>COLOR COLLECTION <span>01 / 02</span></h3><p>Six curated palettes. One studio.</p></div>
+        <div class="theme-choice-grid" role="group" aria-label="Color palette">
+          <button class="theme-choice" type="button" data-theme-choice="obsidian" aria-pressed="true" style="--preview-base:#0b1418;--preview-panel:#203238;--preview-accent:#68e1b5">
+            <span class="theme-mini" aria-hidden="true"><span class="theme-mini-top"><i></i><i></i><i></i></span><span class="theme-mini-layout"><span class="theme-mini-sidebar"><i></i><i></i><i></i></span><span class="theme-mini-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span></span>
+            <span class="theme-choice-info"><strong>Obsidian Mint</strong><small>Clean • contemporary</small></span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+          <button class="theme-choice" type="button" data-theme-choice="violet" aria-pressed="false" style="--preview-base:#111022;--preview-panel:#30264d;--preview-accent:#a18aff">
+            <span class="theme-mini" aria-hidden="true"><span class="theme-mini-top"><i></i><i></i><i></i></span><span class="theme-mini-layout"><span class="theme-mini-sidebar"><i></i><i></i><i></i></span><span class="theme-mini-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span></span>
+            <span class="theme-choice-info"><strong>Midnight Violet</strong><small>Luminous • immersive</small></span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+          <button class="theme-choice" type="button" data-theme-choice="vintage" aria-pressed="false" style="--preview-base:#161d19;--preview-panel:#3f4735;--preview-accent:#d9ad66">
+            <span class="theme-mini" aria-hidden="true"><span class="theme-mini-top"><i></i><i></i><i></i></span><span class="theme-mini-layout"><span class="theme-mini-sidebar"><i></i><i></i><i></i></span><span class="theme-mini-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span></span>
+            <span class="theme-choice-info"><strong>Vintage Console</strong><small>Warm • timeless</small></span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+          <button class="theme-choice" type="button" data-theme-choice="arctic" aria-pressed="false" style="--preview-base:#edf3f6;--preview-panel:#c9dce5;--preview-accent:#157f9a">
+            <span class="theme-mini" aria-hidden="true"><span class="theme-mini-top"><i></i><i></i><i></i></span><span class="theme-mini-layout"><span class="theme-mini-sidebar"><i></i><i></i><i></i></span><span class="theme-mini-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span></span>
+            <span class="theme-choice-info"><strong>Arctic Precision</strong><small>Bright • analytical</small></span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+          <button class="theme-choice" type="button" data-theme-choice="ember" aria-pressed="false" style="--preview-base:#191312;--preview-panel:#493029;--preview-accent:#ff8756">
+            <span class="theme-mini" aria-hidden="true"><span class="theme-mini-top"><i></i><i></i><i></i></span><span class="theme-mini-layout"><span class="theme-mini-sidebar"><i></i><i></i><i></i></span><span class="theme-mini-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span></span>
+            <span class="theme-choice-info"><strong>Ember Studio</strong><small>Bold • energetic</small></span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+          <button class="theme-choice" type="button" data-theme-choice="cyber" aria-pressed="false" style="--preview-base:#0d1121;--preview-panel:#1c3043;--preview-accent:#00d4dd">
+            <span class="theme-mini" aria-hidden="true"><span class="theme-mini-top"><i></i><i></i><i></i></span><span class="theme-mini-layout"><span class="theme-mini-sidebar"><i></i><i></i><i></i></span><span class="theme-mini-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span></span>
+            <span class="theme-choice-info"><strong>Cyberwave</strong><small>Electric • expressive</small></span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+        </div>
+        <div class="theme-group-heading aesthetic-heading"><h3>INTERFACE AESTHETIC <span>02 / 02</span></h3><p>Mix any aesthetic with any palette.</p></div>
+        <div class="aesthetic-grid" role="group" aria-label="Interface aesthetic">
+          <button type="button" class="aesthetic-choice" data-aesthetic-choice="digital" aria-pressed="true"><span class="aesthetic-glyph" aria-hidden="true">▤</span><span><strong>Digital Studio</strong><small>Clean edges, crisp meters</small></span></button>
+          <button type="button" class="aesthetic-choice" data-aesthetic-choice="analog" aria-pressed="false"><span class="aesthetic-glyph" aria-hidden="true">◉</span><span><strong>Analog Hardware</strong><small>Warm panels, tactile detail</small></span></button>
+          <button type="button" class="aesthetic-choice" data-aesthetic-choice="minimal" aria-pressed="false"><span class="aesthetic-glyph" aria-hidden="true">▱</span><span><strong>Precision Minimalism</strong><small>Quiet, spacious, focused</small></span></button>
+          <button type="button" class="aesthetic-choice" data-aesthetic-choice="hybrid" aria-pressed="false"><span class="aesthetic-glyph" aria-hidden="true">◈</span><span><strong>Hybrid</strong><small>Digital clarity, analog feel</small></span></button>
+        </div>
+        <div class="theme-foot"><span id="themeSaveStatus" role="status" aria-live="polite">Appearance is saved on this device.</span><button id="resetAppearance" type="button">↺ Restore original look</button></div>
+      </section>
+      <footer>MASTERFORGE AI <span>·</span> EARLY ACCESS v0.7 <span>·</span> NO AUDIO TRAINING <span>·</span> WORKS OFFLINE AFTER FIRST LOAD</footer>
+    </main>
+  </div>
+  <dialog id="settingsDialog" class="settings-dialog"><form method="dialog"><div class="dialog-head"><div><p class="eyebrow">MASTERING ENGINE</p><h2>Engine settings</h2></div><button class="x-button" value="cancel" aria-label="Close settings">×</button></div><p id="engineIntro">Local mode masters audio directly in your browser. Studio API mode sends your audio to your own trusted backend for FFmpeg-based two-pass loudness processing.</p><label class="option-row" id="desktopEngineOption" hidden><input type="radio" name="engine" value="desktop" /><span><b>Desktop Studio (recommended)</b><small>Offline two-pass mastering with FFmpeg and measured LUFS. No account, server or upload.</small></span></label><label class="option-row"><input type="radio" name="engine" value="local" checked /><span><b>Browser Local</b><small>No upload. Works on GitHub Pages. Peak-safe processing is approximate.</small></span></label><label class="option-row" id="studioEngineOption"><input type="radio" name="engine" value="studio" /><span><b>Studio API</b><small>Requires a separately hosted MasterForge Python service. Your audio leaves your device.</small></span></label><p id="desktopNotice" class="settings-notice" hidden>Desktop Studio works entirely on this PC. Its audio engine runs locally; no Python installation or internet connection is required after setup.</p><label class="url-label" id="apiUrlLabel" for="apiUrl">STUDIO SERVER BASE URL</label><input type="url" id="apiUrl" placeholder="https://your-backend.example.com" spellcheck="false" /><p class="settings-notice" id="remoteNotice">A remote studio service should be HTTPS and controlled by someone you trust. Files are temporarily processed by that service.</p><button type="submit" class="primary-action" id="saveSettings" value="save">SAVE SETTINGS →</button></form></dialog>
+  <div class="toast" role="status" aria-live="polite" id="toast"></div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
