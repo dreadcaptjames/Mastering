@@ -1,4 +1,4 @@
-/* MasterForge AI v0.8 — offline web/mobile and native desktop mastering studio.
+/* MasterForge AI v0.8.1 — offline web/mobile and native desktop mastering studio.
  * No audio is uploaded unless the user explicitly configures Studio API mode.
  * Local measurements are intentionally labelled estimates, not calibrated LUFS/true peak.
  */
@@ -15,6 +15,14 @@
   const MAX_BYTES = iPadMode ? null : 80 * 1024 * 1024;
   const MAX_SECONDS = iPadMode ? null : 12 * 60;
   const LONG_TRACK_BYTES = 75 * 1024 * 1024;
+  // Keep UI styles and the browser DSP engine in sync across web-app updates.
+  const PRESET_CURVES = Object.freeze({
+    natural: {warmth:.1,clarity:.15,lowMid:-.15,comp:1.13},
+    balanced:{warmth:.35,clarity:.5,lowMid:-.5,comp:1.4},
+    impact:{warmth:.8,clarity:.8,lowMid:-.8,comp:1.7},
+    reference:{warmth:1.9,clarity:2,lowMid:-3.1,comp:1.17}
+  });
+  const isValidPreset = value => Object.prototype.hasOwnProperty.call(PRESET_CURVES,value);
   const standalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const state = {
     buffer: null, sourceFile: null, originalUrl: null, masterUrl: null,
@@ -300,7 +308,8 @@
     const source=ctx.createBufferSource();source.buffer=buffer;
     const src=state.sourceMetrics;
     const dense=(src.crest<8 && src.rmsDb>-14) || src.rmsDb>-10.5;
-    const base={natural:{warmth:.1,clarity:.15,lowMid:-.15,comp:1.13},balanced:{warmth:.35,clarity:.5,lowMid:-.5,comp:1.4},impact:{warmth:.8,clarity:.8,lowMid:-.8,comp:1.7},reference:{warmth:1.9,clarity:2,lowMid:-3.1,comp:1.17}}[settings.preset];
+    const base=PRESET_CURVES[settings.preset];
+    if (!base) throw new Error('Mastering preset is unavailable in this app version. Refresh the page online to install the latest engine.');
     let output=source;
     const highpass=ctx.createBiquadFilter();highpass.type='highpass';highpass.frequency.value=26;highpass.Q.value=.65;output.connect(highpass);output=highpass;
     output=addBiquad(ctx,output,'lowshelf',125,clamp(base.warmth+settings.warmth*.65,-2.5,2.8));
@@ -415,7 +424,9 @@
   }
   async function startMastering() {
     if(!state.buffer||state.rendering)return;
-    const settings=getSettings();state.rendering=true;
+    const settings=getSettings();
+    if(!isValidPreset(settings.preset)){toast('Mastering style is unavailable in this app version. Reload the app online.');return;}
+    state.rendering=true;
     $('masterAction').disabled=true;$('masterAction').textContent='✦  MASTERING AUDIO…';
     $('renderNote').textContent=state.engine==='studio'?'Sending audio to your configured studio service…':state.engine==='desktop'?'Rendering locally with bundled FFmpeg (two-pass)…':'Processing audio privately on your device…';
     try {
@@ -605,6 +616,7 @@
     $('demoBtn').addEventListener('click',async()=>{try {await getContext();const audio=makeDemo();const file=new File([wavBlob(audio,16)],'MasterForge-Demo-Groove.wav',{type:'audio/wav'});await loadFile(file,audio);}catch(e){toast(`Demo unavailable: ${e.message}`);}});
     $('removeFile').addEventListener('click',resetSource);
     document.querySelectorAll('.preset').forEach(btn=>btn.addEventListener('click',()=>{
+      if(!isValidPreset(btn.dataset.preset)) {toast('Mastering style is unavailable. Reload the updated app.');return;}
       state.preset=btn.dataset.preset;
       if(state.preset==='reference'){
         $('target').value='-11';

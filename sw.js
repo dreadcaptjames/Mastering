@@ -1,11 +1,19 @@
-/* MasterForge AI v0.8.0 app shell: caches application code only, never user audio. */
-const CACHE_NAME='masterforge-shell-v0.8.0';
-const APP_SHELL=['./','./index.html','./app.js','./theme.js','./styles.css','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
+/* MasterForge AI v0.8.1: app shell only, never cache a user's audio. */
+const CACHE_NAME = 'masterforge-shell-v0.8.1';
+const APP_SHELL = [
+  './','./index.html',
+  './app.js?v=0.8.1','./theme.js?v=0.8.1','./styles.css?v=0.8.1',
+  './manifest.webmanifest','./assets/icon-192.png',
+  './assets/icon-512.png','./assets/apple-touch-icon.png'
+];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate',event=>{
-  event.waitUntil(Promise.all([caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('masterforge-shell-')&&n!==CACHE_NAME).map(n=>caches.delete(n)))),self.clients.claim()]));
+  event.waitUntil(Promise.all([
+    caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('masterforge-shell-')&&n!==CACHE_NAME).map(n=>caches.delete(n)))),
+    self.clients.claim()
+  ]));
 });
 self.addEventListener('fetch',event=>{
   const request=event.request;
@@ -23,9 +31,26 @@ self.addEventListener('fetch',event=>{
   }
   if(url.origin!==self.location.origin)return;
   if(!url.pathname.startsWith(new URL(self.registration.scope).pathname))return;
-  if(request.mode==='navigate'){
-    event.respondWith(fetch(request).catch(()=>caches.match('./index.html')));
+  // Network-first for executable app code and HTML, cache fallback for offline operation.
+  // Versioned script URLs prevent an old service worker from pairing older engine JS
+  // with a newly deployed Reference Match button.
+  if(request.mode==='navigate'||['script','style'].includes(request.destination)){
+    event.respondWith(caches.open(CACHE_NAME).then(async cache=>{
+      try {
+        const response=await fetch(request);
+        if(response.ok) await cache.put(request,response.clone());
+        return response;
+      } catch(error) {
+        const cached=await cache.match(request,{ignoreSearch:true});
+        if(cached)return cached;
+        if(request.mode==='navigate'){
+          const shell=await cache.match('./index.html');
+          if(shell)return shell;
+        }
+        throw error;
+      }
+    }));
     return;
   }
-  event.respondWith(caches.match(request).then(hit=>hit||fetch(request)));
+  event.respondWith(caches.match(request,{ignoreSearch:true}).then(hit=>hit||fetch(request)));
 });

@@ -13,8 +13,8 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png" />
   <meta name="description" content="MasterForge AI — a privacy-first audio mastering studio with real in-browser processing and optional studio rendering." />
   <title>MasterForge AI — Intelligent Mastering Studio</title>
-  <script src="./theme.js"></script>
-  <link rel="stylesheet" href="./styles.css" />
+  <script src="./theme.js?v=0.8.1"></script>
+  <link rel="stylesheet" href="./styles.css?v=0.8.1" />
 </head>
 <body>
   <div class="app-shell">
@@ -122,6 +122,6 @@
   </div>
   <dialog id="settingsDialog" class="settings-dialog"><form method="dialog"><div class="dialog-head"><div><p class="eyebrow">MASTERING ENGINE</p><h2>Engine settings</h2></div><button class="x-button" value="cancel" aria-label="Close settings">×</button></div><p id="engineIntro">Local mode masters audio directly in your browser. Studio API mode sends your audio to your own trusted backend for FFmpeg-based two-pass loudness processing.</p><label class="option-row" id="desktopEngineOption" hidden><input type="radio" name="engine" value="desktop" /><span><b>Desktop Studio (recommended)</b><small>Offline two-pass mastering with FFmpeg and measured LUFS. No account, server or upload.</small></span></label><label class="option-row"><input type="radio" name="engine" value="local" checked /><span><b>Browser Local</b><small>No upload. Works on GitHub Pages. Peak-safe processing is approximate.</small></span></label><label class="option-row" id="studioEngineOption"><input type="radio" name="engine" value="studio" /><span><b>Studio API</b><small>Requires a separately hosted MasterForge Python service. Your audio leaves your device.</small></span></label><p id="desktopNotice" class="settings-notice" hidden>Desktop Studio works entirely on this PC. Its audio engine runs locally; no Python installation or internet connection is required after setup.</p><label class="url-label" id="apiUrlLabel" for="apiUrl">STUDIO SERVER BASE URL</label><input type="url" id="apiUrl" placeholder="https://your-backend.example.com" spellcheck="false" /><p class="settings-notice" id="remoteNotice">A remote studio service should be HTTPS and controlled by someone you trust. Files are temporarily processed by that service.</p><button type="submit" class="primary-action" id="saveSettings" value="save">SAVE SETTINGS →</button></form></dialog>
   <div class="toast" role="status" aria-live="polite" id="toast"></div>
-  <script src="./app.js" defer></script>
+  <script src="./app.js?v=0.8.1" defer></script>
 </body>
 </html>
