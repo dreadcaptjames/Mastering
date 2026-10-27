@@ -1,8 +1,8 @@
-/* MasterForge AI v0.8.1: app shell only, never cache a user's audio. */
-const CACHE_NAME = 'masterforge-shell-v0.8.1';
+/* MasterForge AI v0.8.2: app shell only, never cache a user's audio. */
+const CACHE_NAME = 'masterforge-shell-v0.8.2';
 const APP_SHELL = [
   './','./index.html',
-  './app.js?v=0.8.1','./theme.js?v=0.8.1','./styles.css?v=0.8.1',
+  './app.js?v=0.8.2','./theme.js?v=0.8.2','./styles.css?v=0.8.2',
   './manifest.webmanifest','./assets/icon-192.png',
   './assets/icon-512.png','./assets/apple-touch-icon.png'
 ];
@@ -33,7 +33,7 @@ self.addEventListener('fetch',event=>{
   if(!url.pathname.startsWith(new URL(self.registration.scope).pathname))return;
   // Network-first for executable app code and HTML, cache fallback for offline operation.
   // Versioned script URLs prevent an old service worker from pairing older engine JS
-  // with a newly deployed Reference Match button.
+  // with a newly deployed Signature button.
   if(request.mode==='navigate'||['script','style'].includes(request.destination)){
     event.respondWith(caches.open(CACHE_NAME).then(async cache=>{
       try {

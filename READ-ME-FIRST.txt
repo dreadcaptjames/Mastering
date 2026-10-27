@@ -1,11 +1,11 @@
-MASTERFORGE AI v0.8.1 — UNIVERSAL WEB MASTERING STUDIO
+MASTERFORGE AI v0.8.2 — UNIVERSAL WEB MASTERING STUDIO
 
 Upload the CONTENTS of this folder (index.html at site root) to a static HTTPS host such as https://app.netlify.com/drop. No GitHub required. Files and mastering stay on the device in Browser Local mode.
 
-NEW: Reference Match (Beta) — a limited Mixea-inspired tonal character built from two reference comparisons. This is independent DSP code and NOT Mixea or a guarantee of equivalent quality. Browser processing has a fixed reference-derived EQ curve and approximate loudness; the desktop FFmpeg engine offers fuller source-adaptive EQ, measured LUFS and dynamic guards.
+NEW: Signature (Beta) — an experimental tonal mastering character calibrated from two original/master audio comparisons. This is independent DSP, not a guarantee of commercial mastering quality. Browser processing has a fixed finishing EQ curve and approximate loudness; the desktop FFmpeg engine offers fuller source-adaptive EQ, measured LUFS and dynamic guards.
 
 WAV, MP3 and M4A/AAC exports are available depending on browser encoder support; initial MP3 export may need an online connection. To install the site as an app, use your browser's Add to Home Screen / Install menu. After initial app-shell caching it can open offline. Very large tracks still depend on device memory.
 
 No user audio files are included, uploaded or retained by the static host. See the full source README for technical notes and limitations.
 
-UPDATE NOTE v0.8.1: This release fixes Reference Match errors caused by older app.js files retained in a browser service-worker cache. Upload every file, and reopen or reload the app while online so its assets update.
+UPDATE NOTE v0.8.2: The mastering style is now named Signature throughout the interface. Upload every file, and reopen or reload the app while online to receive the updated branding and cache version.

@@ -1,4 +1,4 @@
-/* MasterForge AI v0.8.1 — offline web/mobile and native desktop mastering studio.
+/* MasterForge AI v0.8.2 — offline web/mobile and native desktop mastering studio.
  * No audio is uploaded unless the user explicitly configures Studio API mode.
  * Local measurements are intentionally labelled estimates, not calibrated LUFS/true peak.
  */
@@ -23,6 +23,8 @@
     reference:{warmth:1.9,clarity:2,lowMid:-3.1,comp:1.17}
   });
   const isValidPreset = value => Object.prototype.hasOwnProperty.call(PRESET_CURVES,value);
+  // Keep the legacy 'reference' engine ID for compatibility, but always display 'Signature'.
+  const presetName = value => value === 'reference' ? 'Signature' : value;
   const standalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const state = {
     buffer: null, sourceFile: null, originalUrl: null, masterUrl: null,
@@ -316,7 +318,7 @@
     output=addBiquad(ctx,output,'peaking',settings.preset==='reference'?560:315,base.lowMid,.8);
     output=addBiquad(ctx,output,'peaking',settings.preset==='reference'?4400:3300,clamp(base.clarity+settings.clarity*.48,-2.2,2.9),.8);
     output=addBiquad(ctx,output,'highshelf',8500,clamp((settings.preset==='reference'?.65:.17)+settings.clarity*.2,-.8,1.2));
-    // Browser Reference Match uses bounded fixed EQ rather than calibrated FFmpeg metering.
+    // Browser Signature uses bounded fixed EQ rather than calibrated FFmpeg metering.
     // Widen only existing stereo mixes with healthy phase correlation.
     let width=1;
     if(settings.preset==='reference' && buffer.numberOfChannels===2 && src.correlation>.32 && src.correlation<.985){
@@ -372,7 +374,7 @@
         minGain=Math.min(minGain,gain);sumReduction+=(1-gain);
       }
     }
-    return {buffer:rendered,recipe:{eq:settings.preset==='reference'?'Reference-derived tonal EQ with guarded stereo width':'High-pass 26 Hz, broad lowshelf / mid bell / presence bell / air shelf',stereoWidth:width,compression:appliedCompression?'Gentle broadband compression':'Bypassed: conservative dynamics',gainRequestedDb:requestedGain,estimatedMaxLimitingDb:-db(minGain),averageGainReductionFraction:sumReduction/sampleCount,ceilingDbFS:ceilingDb,sourceDense:dense,targetRmsDbFS:targetRms,limitedForTransients:requestedGain < desiredGain - 0.1}};
+    return {buffer:rendered,recipe:{eq:settings.preset==='reference'?'Signature tonal EQ with guarded stereo width':'High-pass 26 Hz, broad lowshelf / mid bell / presence bell / air shelf',stereoWidth:width,compression:appliedCompression?'Gentle broadband compression':'Bypassed: conservative dynamics',gainRequestedDb:requestedGain,estimatedMaxLimitingDb:-db(minGain),averageGainReductionFraction:sumReduction/sampleCount,ceilingDbFS:ceilingDb,sourceDense:dense,targetRmsDbFS:targetRms,limitedForTransients:requestedGain < desiredGain - 0.1}};
   }
   function wavBlob(buffer, bits = 24) {
     const channels=2, rate=buffer.sampleRate, frames=buffer.length, bytesPerSample=bits/8;
@@ -432,7 +434,7 @@
     try {
       let blob, rendered, recipe, studioMetrics=null;
       if(state.engine==='studio' || state.engine==='desktop') {
-        if(state.engine==='studio' && settings.preset==='reference')throw new Error('Reference Match Beta requires Desktop Studio or Browser Local. The optional remote Studio API does not yet support this mode.');
+        if(state.engine==='studio' && settings.preset==='reference')throw new Error('Signature Beta requires Desktop Studio or Browser Local. The optional remote Studio API does not yet support this mode.');
         if(state.engine==='studio' && !state.apiUrl)throw new Error('Set a trusted Studio API URL in engine settings first.');
         const result=state.engine==='desktop' ? await processDesktop(state.sourceFile,settings) : await processStudio(state.sourceFile,settings);
         blob=result.blob;studioMetrics=result.studioMetrics;
@@ -454,12 +456,12 @@
       state.masterUrl=URL.createObjectURL(blob);state.masterBlob=blob;
       masteredAudio.src=state.masterUrl;masteredAudio.load();
       $('masterBtn').disabled=false;$('downloadBtn').disabled=false;$('topExportBtn').disabled=false;$('reportBtn').disabled=false;$('shareBtn').disabled=false;
-      $('versionTag').textContent=`${settings.preset.toUpperCase()} MASTER`;
+      $('versionTag').textContent=`${presetName(settings.preset).toUpperCase()} MASTER`;
       $('renderNote').textContent='Master ready. Use Level-match A/B for tone or switch it off to hear the output level difference.';
       $('compareHint').textContent=$('levelMatch').checked?'Matched using approximate RMS levels':'Actual relative output level';
       const pre=state.sourceMetrics;
       const delta=metrics.rmsDb-pre.rmsDb;
-      $('assistantMessage').textContent=`Your ${settings.preset} master is ready.\n\nEstimated RMS changed ${delta>=0?'+':''}${round(delta)} dB and sample peak is ${round(metrics.peakDb)} dBFS.\n\n${(state.engine==='studio' || state.engine==='desktop') && studioMetrics?.output ? `Studio metering: ${studioMetrics.output.input_i||studioMetrics.output.integrated_lufs||'see report'} integrated LUFS (see report for measured fields).\n\n` : ''}Switch ORIGINAL / MASTERED for a level-matched comparison. The final decision should be made by listening, not the numbers alone.`;
+      $('assistantMessage').textContent=`Your ${presetName(settings.preset)} master is ready.\n\nEstimated RMS changed ${delta>=0?'+':''}${round(delta)} dB and sample peak is ${round(metrics.peakDb)} dBFS.\n\n${(state.engine==='studio' || state.engine==='desktop') && studioMetrics?.output ? `Studio metering: ${studioMetrics.output.input_i||studioMetrics.output.integrated_lufs||'see report'} integrated LUFS (see report for measured fields).\n\n` : ''}Switch ORIGINAL / MASTERED for a level-matched comparison. The final decision should be made by listening, not the numbers alone.`;
       rendered=null; // Allow Safari to reclaim the PCM render after encoding.
       updatePlaybackGain();switchSide('master');toast('Master complete! Compare and download when ready.');
     } catch(error) { $('renderNote').textContent=iPadMode?'Mastering could not finish. Close other apps to free memory, or use the Windows/CachyOS edition for large files.':'Mastering failed. Please check the settings and try again.';toast(`Mastering failed: ${error.message||'Unknown error'}`); }
@@ -474,7 +476,7 @@
     return {format,bitrate};
   }
   function masterFilename(format='wav') {
-    return `${safeFilename(state.sourceName)}-masterforge-${state.renderSettings?.preset||'master'}.${format}`;
+    return `${safeFilename(state.sourceName)}-masterforge-${presetName(state.renderSettings?.preset||'master').toLowerCase()}.${format}`;
   }
   function refreshExportOptions() {
     const {format}=selectedExport();
@@ -600,7 +602,7 @@
   }
   function report() {
     if(!state.renderSettings)return;
-    const data={app:'MasterForge AI',version:'0.7.0',source:state.sourceName,settings:state.renderSettings,
+    const data={app:'MasterForge AI',version:'0.8.2',source:state.sourceName,presetName:presetName(state.renderSettings.preset),settings:state.renderSettings,
       input:state.sourceMetrics,output:state.masterMetrics,studioMeasurements:state.studioMetrics,
       limitations:['Browser local RMS is not integrated LUFS. Browser peak is sample peak, not calibrated oversampled true peak.','No trained AI artifact classifier is included in v0.7.','Lossy MP3/AAC exports cannot restore quality absent from the source and can introduce encoder peaks.','Compare masters by ear and check final exports with a trusted meter before distribution.']};
     const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
@@ -620,7 +622,7 @@
       state.preset=btn.dataset.preset;
       if(state.preset==='reference'){
         $('target').value='-11';
-        $('loudnessGuidance').textContent='Reference Match starts near -11 LUFS on Desktop Studio; Browser Local uses approximate RMS. Compare at matched loudness.';
+        $('loudnessGuidance').textContent='Signature starts near -11 LUFS on Desktop Studio; Browser Local uses approximate RMS. Compare at matched loudness.';
       }
       document.querySelectorAll('.preset').forEach(other=>{other.classList.toggle('active',other===btn);other.setAttribute('aria-checked',String(other===btn));});
       if(state.masterUrl)$('renderNote').textContent='Style changed. Create a new master to hear it.';
@@ -689,7 +691,7 @@
     state.engine=desktop?(storedEngine==='local'?'local':'desktop'):(iPadMode?'local':storedEngine==='studio'?'studio':'local');
     if(desktop) {
       document.body.classList.add('desktop-app');
-      document.querySelector('.trust-panel p').innerHTML='<b>Made for local mastering.</b><br>Your files remain on your computer. Studio mode uses bundled FFmpeg and no cloud service. Audio quality is experimental, not yet benchmarked against Mixea.';
+      document.querySelector('.trust-panel p').innerHTML='<b>Made for local mastering.</b><br>Your files remain on your computer. Studio mode uses bundled FFmpeg and no cloud service. Processing is experimental and has not yet undergone independent listening tests.';
     }
     if(iPadMode){
       document.body.classList.add('ipad-app');
