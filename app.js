@@ -1,4 +1,4 @@
-/* MasterForge AI v0.7 — offline web/mobile and native desktop mastering MVP.
+/* MasterForge AI v0.8 — offline web/mobile and native desktop mastering studio.
  * No audio is uploaded unless the user explicitly configures Studio API mode.
  * Local measurements are intentionally labelled estimates, not calibrated LUFS/true peak.
  */
@@ -300,20 +300,34 @@
     const source=ctx.createBufferSource();source.buffer=buffer;
     const src=state.sourceMetrics;
     const dense=(src.crest<8 && src.rmsDb>-14) || src.rmsDb>-10.5;
-    const base={natural:{warmth:.1,clarity:.15,lowMid:-.15,comp:1.13},balanced:{warmth:.35,clarity:.5,lowMid:-.5,comp:1.4},impact:{warmth:.8,clarity:.8,lowMid:-.8,comp:1.7}}[settings.preset];
+    const base={natural:{warmth:.1,clarity:.15,lowMid:-.15,comp:1.13},balanced:{warmth:.35,clarity:.5,lowMid:-.5,comp:1.4},impact:{warmth:.8,clarity:.8,lowMid:-.8,comp:1.7},reference:{warmth:1.9,clarity:2,lowMid:-3.1,comp:1.17}}[settings.preset];
     let output=source;
     const highpass=ctx.createBiquadFilter();highpass.type='highpass';highpass.frequency.value=26;highpass.Q.value=.65;output.connect(highpass);output=highpass;
     output=addBiquad(ctx,output,'lowshelf',125,clamp(base.warmth+settings.warmth*.65,-2.5,2.8));
-    output=addBiquad(ctx,output,'peaking',315,base.lowMid,.8);
-    output=addBiquad(ctx,output,'peaking',3300,clamp(base.clarity+settings.clarity*.48,-2.2,2.5),.8);
-    output=addBiquad(ctx,output,'highshelf',9000,clamp(.17+settings.clarity*.2,-.8,1.2));
+    output=addBiquad(ctx,output,'peaking',settings.preset==='reference'?560:315,base.lowMid,.8);
+    output=addBiquad(ctx,output,'peaking',settings.preset==='reference'?4400:3300,clamp(base.clarity+settings.clarity*.48,-2.2,2.9),.8);
+    output=addBiquad(ctx,output,'highshelf',8500,clamp((settings.preset==='reference'?.65:.17)+settings.clarity*.2,-.8,1.2));
+    // Browser Reference Match uses bounded fixed EQ rather than calibrated FFmpeg metering.
+    // Widen only existing stereo mixes with healthy phase correlation.
+    let width=1;
+    if(settings.preset==='reference' && buffer.numberOfChannels===2 && src.correlation>.32 && src.correlation<.985){
+      width=1.18;
+      const splitter=ctx.createChannelSplitter(2), merger=ctx.createChannelMerger(2);
+      const mL=ctx.createGain(),mR=ctx.createGain(),sL=ctx.createGain(),sR=ctx.createGain();
+      mL.gain.value=(1+width)/2;mR.gain.value=(1-width)/2;
+      sL.gain.value=(1-width)/2;sR.gain.value=(1+width)/2;
+      output.connect(splitter);splitter.connect(mL,0);splitter.connect(mR,1);
+      splitter.connect(sL,0);splitter.connect(sR,1);
+      mL.connect(merger,0,0);mR.connect(merger,0,0);
+      sL.connect(merger,0,1);sR.connect(merger,0,1);output=merger;
+    }
     let appliedCompression=false;
-    if(!dense && settings.preset!=='natural') {
+    if(!dense && settings.preset!=='natural' && (settings.preset!=='reference' || src.crest>13)) {
       const comp=ctx.createDynamicsCompressor();
-      comp.threshold.value=settings.preset==='impact'?-20:-18;
+      comp.threshold.value=settings.preset==='reference'?-14:settings.preset==='impact'?-20:-18;
       comp.knee.value=14;
-      comp.ratio.value=clamp(base.comp+settings.intensity*.23,1.1,2.2);
-      comp.attack.value=settings.preset==='impact'?.021:.033;
+      comp.ratio.value=clamp(base.comp+settings.intensity*(settings.preset==='reference'?.1:.23),1.1,2.2);
+      comp.attack.value=settings.preset==='reference'?.05:settings.preset==='impact'?.021:.033;
       comp.release.value=.23;
       output.connect(comp);output=comp;appliedCompression=true;
     }
@@ -322,7 +336,7 @@
     const rendered=await ctx.startRendering();
     const shaped=measure(rendered);
     // RMS is not EBU R128 loudness. Use a bounded level intention, not a LUFS guarantee.
-    const targetRms=settings.target-2.2 + ({natural:-1,balanced:0,impact:1}[settings.preset]) + settings.intensity*.6;
+    const targetRms=(settings.preset==='reference'?settings.target-2.5:settings.target-2.2) + ({natural:-1,balanced:0,impact:1,reference:0}[settings.preset]) + settings.intensity*.4;
     // Higher target options are intentionally approximate in Browser Local mode.
     // The lookahead ceiling is sample-peak protection, not certified dBTP.
     const ceilingDb=-1.0, maxTransientReductionDb=dense?2.5:4.0;
@@ -349,7 +363,7 @@
         minGain=Math.min(minGain,gain);sumReduction+=(1-gain);
       }
     }
-    return {buffer:rendered,recipe:{eq:'High-pass 26 Hz, broad lowshelf / mid bell / presence bell / air shelf',compression:appliedCompression?'Gentle broadband compression':'Bypassed: conservative dynamics',gainRequestedDb:requestedGain,estimatedMaxLimitingDb:-db(minGain),averageGainReductionFraction:sumReduction/sampleCount,ceilingDbFS:ceilingDb,sourceDense:dense,targetRmsDbFS:targetRms,limitedForTransients:requestedGain < desiredGain - 0.1}};
+    return {buffer:rendered,recipe:{eq:settings.preset==='reference'?'Reference-derived tonal EQ with guarded stereo width':'High-pass 26 Hz, broad lowshelf / mid bell / presence bell / air shelf',stereoWidth:width,compression:appliedCompression?'Gentle broadband compression':'Bypassed: conservative dynamics',gainRequestedDb:requestedGain,estimatedMaxLimitingDb:-db(minGain),averageGainReductionFraction:sumReduction/sampleCount,ceilingDbFS:ceilingDb,sourceDense:dense,targetRmsDbFS:targetRms,limitedForTransients:requestedGain < desiredGain - 0.1}};
   }
   function wavBlob(buffer, bits = 24) {
     const channels=2, rate=buffer.sampleRate, frames=buffer.length, bytesPerSample=bits/8;
@@ -407,6 +421,7 @@
     try {
       let blob, rendered, recipe, studioMetrics=null;
       if(state.engine==='studio' || state.engine==='desktop') {
+        if(state.engine==='studio' && settings.preset==='reference')throw new Error('Reference Match Beta requires Desktop Studio or Browser Local. The optional remote Studio API does not yet support this mode.');
         if(state.engine==='studio' && !state.apiUrl)throw new Error('Set a trusted Studio API URL in engine settings first.');
         const result=state.engine==='desktop' ? await processDesktop(state.sourceFile,settings) : await processStudio(state.sourceFile,settings);
         blob=result.blob;studioMetrics=result.studioMetrics;
@@ -591,6 +606,10 @@
     $('removeFile').addEventListener('click',resetSource);
     document.querySelectorAll('.preset').forEach(btn=>btn.addEventListener('click',()=>{
       state.preset=btn.dataset.preset;
+      if(state.preset==='reference'){
+        $('target').value='-11';
+        $('loudnessGuidance').textContent='Reference Match starts near -11 LUFS on Desktop Studio; Browser Local uses approximate RMS. Compare at matched loudness.';
+      }
       document.querySelectorAll('.preset').forEach(other=>{other.classList.toggle('active',other===btn);other.setAttribute('aria-checked',String(other===btn));});
       if(state.masterUrl)$('renderNote').textContent='Style changed. Create a new master to hear it.';
     }));

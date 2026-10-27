@@ -291,3 +291,6 @@ html[data-theme="arctic"] .top-export,html[data-theme="arctic"] .play-button,htm
 html[data-theme] .finding{background:var(--theme-soft);border-color:var(--stroke);color:var(--text)}
 html[data-theme] .finding strong{color:var(--text)}
 html[data-theme] .finding p{color:var(--muted)}
+
+/* Reference Match Beta: readable label across theme palettes. */
+.preset-copy em{font-style:normal;font-size:9px;letter-spacing:.06em;opacity:.8;padding:2px 5px;border:1px solid currentColor;border-radius:4px;vertical-align:middle;margin-left:3px}

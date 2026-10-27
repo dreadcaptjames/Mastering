@@ -1,5 +1,5 @@
-/* MasterForge AI v0.7.0 app shell: caches application code only, never user audio. */
-const CACHE_NAME='masterforge-shell-v0.7.0';
+/* MasterForge AI v0.8.0 app shell: caches application code only, never user audio. */
+const CACHE_NAME='masterforge-shell-v0.8.0';
 const APP_SHELL=['./','./index.html','./app.js','./theme.js','./styles.css','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
